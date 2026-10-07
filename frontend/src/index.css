@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-tic-surface text-tic-navy antialiased;
+  }
+}
+
+@media print {
+  body:has(.closed-report-print) * {
+    visibility: hidden;
+  }
+
+  body:has(.closed-report-print) .closed-report-print,
+  body:has(.closed-report-print) .closed-report-print * {
+    visibility: visible;
+  }
+
+  body:has(.closed-report-print) .closed-report-print {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    border: 0;
+    box-shadow: none;
+  }
+}
+
+/* Landing page decorative grid (used by the hero section) */
+@layer utilities {
+  .map-grid {
+    background-image:
+      radial-gradient(circle at 24% 35%, rgba(31, 107, 78, 0.35) 0 3px, transparent 4px),
+      radial-gradient(circle at 66% 42%, rgba(31, 78, 95, 0.32) 0 3px, transparent 4px),
+      radial-gradient(circle at 49% 67%, rgba(31, 107, 78, 0.28) 0 3px, transparent 4px),
+      linear-gradient(rgba(10, 22, 40, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(10, 22, 40, 0.08) 1px, transparent 1px);
+    background-size: auto, auto, auto, 36px 36px, 36px 36px;
+  }
+}

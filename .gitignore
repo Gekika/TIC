@@ -1,0 +1,41 @@
+# --- Secrets ----------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Backend (Maven / Java) -------------------------------------------------
+backend/target/
+*.class
+*.jar
+!**/.mvn/wrapper/maven-wrapper.jar
+hs_err_pid*.log
+
+# --- Frontend (Node / Vite) -------------------------------------------------
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+.vite/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Docker / build leftovers -----------------------------------------------
+.docker/
+.docker-temp/
+backups/
+
+# --- Logs & temp ------------------------------------------------------------
+*.log
+logs/
+tmp/
+work/
+
+# --- IDE / OS ---------------------------------------------------------------
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db

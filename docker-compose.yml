@@ -1,0 +1,95 @@
+# ---------------------------------------------------------------------------
+# TIC Platform - full stack
+#
+#   docker compose up -d --build              # postgres + backend + frontend
+#   docker compose --profile mail up -d       # ...plus Mailpit (test inbox on :8025)
+#
+# Browser -> frontend (Nginx :80) -> /api -> backend (:8080) -> postgres
+# Only the frontend is published to the outside world.
+# All settings come from .env (copy .env.example).
+# ---------------------------------------------------------------------------
+name: tic
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tic}
+      POSTGRES_USER: ${POSTGRES_USER:-tic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      TZ: Africa/Nairobi
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Reachable only from this machine (for psql / local dev), never from the internet
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    image: tic-backend:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-tic}
+      POSTGRES_USER: ${POSTGRES_USER:-tic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TIC_JWT_SECRET: ${TIC_JWT_SECRET:?Set TIC_JWT_SECRET in .env (min 32 chars)}
+      TIC_JWT_ACCESS_TOKEN_MINUTES: ${TIC_JWT_ACCESS_TOKEN_MINUTES:-15}
+      TIC_PORTAL_BASE_URL: ${TIC_PORTAL_BASE_URL:-http://localhost}
+      TIC_CORS_ALLOWED_ORIGINS: ${TIC_PORTAL_BASE_URL:-http://localhost}
+      TIC_ACCOUNT_SETUP_TOKEN_HOURS: ${TIC_ACCOUNT_SETUP_TOKEN_HOURS:-168}
+      TIC_SEED_ENABLED: ${TIC_SEED_ENABLED:-true}
+      TIC_ADMIN_EMAIL: ${TIC_ADMIN_EMAIL:?Set TIC_ADMIN_EMAIL in .env}
+      TIC_ADMIN_PASSWORD: ${TIC_ADMIN_PASSWORD:?Set TIC_ADMIN_PASSWORD in .env}
+      TIC_SEED_DEMO_USERS: ${TIC_SEED_DEMO_USERS:-false}
+      MAIL_HOST: ${MAIL_HOST:-mailpit}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-false}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-false}
+      TIC_MAIL_FROM: ${TIC_MAIL_FROM:-no-reply@tickenya.local}
+      TZ: Africa/Nairobi
+    expose:
+      - "8080"
+    logging: &default-logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  frontend:
+    build:
+      context: ./frontend
+    image: tic-frontend:latest
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    logging: *default-logging
+
+  # Optional test inbox: `docker compose --profile mail up -d`, then open http://SERVER:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    profiles: ["mail"]
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    expose:
+      - "1025"
+
+volumes:
+  postgres_data:

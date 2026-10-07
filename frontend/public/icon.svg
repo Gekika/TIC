@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="TIC Kenya">
+  <rect width="512" height="512" rx="96" fill="#0A1628"/>
+  <path d="M124 295c92 12 168-51 198-178 38 70 17 184-67 233-47 28-97 25-131-55Z" fill="#1F6B4E"/>
+  <path d="M128 294c67-15 125-56 173-123" stroke="#fff" stroke-width="28" stroke-linecap="round" fill="none"/>
+  <circle cx="357" cy="353" r="44" fill="#1F4E5F"/>
+</svg>

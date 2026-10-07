@@ -1,0 +1,76 @@
+# ---------------------------------------------------------------------------
+# TIC backend configuration.
+# Every value can be overridden with an environment variable (see .env.example).
+# Defaults below are for local development: `mvn spring-boot:run` against the
+# Postgres started by `docker compose up -d postgres`.
+# ---------------------------------------------------------------------------
+spring:
+  application:
+    name: tic-backend
+  # Local dev convenience: `cd backend && mvn spring-boot:run` picks up the repo-root .env.
+  # In Docker the variables come from docker-compose instead (the file is not in the image).
+  config:
+    import: "optional:file:../.env[.properties]"
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:tic}
+    username: ${POSTGRES_USER:tic}
+    password: ${POSTGRES_PASSWORD:tic_dev_pass}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate          # schema is owned by Flyway, Hibernate only checks it
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_STARTTLS:false}
+
+server:
+  port: 8080
+  # Running behind Nginx: trust X-Forwarded-* headers
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    mail:
+      enabled: false            # an SMTP outage must not mark the app unhealthy
+
+tic:
+  jwt:
+    issuer: tic-platform
+    access-token-minutes: ${TIC_JWT_ACCESS_TOKEN_MINUTES:15}
+    secret: ${TIC_JWT_SECRET:dev-only-change-this-secret-dev-only-change-this}
+  cors:
+    allowed-origins: ${TIC_CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  portal:
+    base-url: ${TIC_PORTAL_BASE_URL:http://localhost:5173}
+  mail:
+    from: ${TIC_MAIL_FROM:no-reply@tickenya.local}
+  account-setup:
+    token-hours: ${TIC_ACCOUNT_SETUP_TOKEN_HOURS:168}
+  seed:
+    enabled: ${TIC_SEED_ENABLED:true}
+    admin-email: ${TIC_ADMIN_EMAIL:admin@agricert.co.ke}
+    admin-password: ${TIC_ADMIN_PASSWORD:Dev@12345}
+    demo-users: ${TIC_SEED_DEMO_USERS:true}
